@@ -4,9 +4,9 @@
 
 
 // The following protect the buffer's "Ready" states and interruptState
-#define ISR_ENTER if(ops != 0) return // Don't process interrupt if in critical block
-#define CODE_ENTER     ++ops          // Enter critical block
-#define CODE_LEAVE     --ops          // Leave critical block
+#define ISR_ENTER if(Screen::ops != 0) return // Don't process interrupt if in critical block
+#define CODE_ENTER     ++Screen::ops          // Enter critical block
+#define CODE_LEAVE     --Screen::ops          // Leave critical block
 
 enum{
   INTERRUPTSTATE_IDLE            /* Do nothing at a slow rate*/  , 
@@ -73,20 +73,20 @@ enum{
 
 
 
+volatile uint8_t Screen::ops=0;
+volatile uint8_t Screen::interruptState=INTERRUPT_IDLE;
+uint8_t Screen::readTick=0;
+
+struct LCD_BUFFER Screen::lcdBuffers[2];
+
+LCD_BUFFER *Screen::pRead=0;
+uint8_t *Screen::pReadCurrent=0;
 
 
-static struct LCD_BUFFER lcdBuffers[2];
+LCD_BUFFER *Screen::pWriteNext=0;
+LCD_BUFFER *Screen::pWrite=0;
+uint8_t *Screen::pWriteCurrent=0;
 
-static LCD_BUFFER *pRead;
-static uint8_t *pReadCurrent;
-static uint8_t readTick;
-
-static LCD_BUFFER *pWriteNext;
-static LCD_BUFFER *pWrite;
-static uint8_t *pWriteCurrent;
-
-static volatile uint8_t interruptState;
-static volatile uint8_t ops;
 
 
 
@@ -567,20 +567,20 @@ void Screen::lcdSyncWriteNibble(uint8_t value)
 
 
 
-void handleLcd()
+void interruptTransmit()
 {
     uint8_t writeByte;
     ISR_ENTER;
     
     // We know the user isn't altering buffer state
     // and we will complete before they execute again
-    if(interruptState == INTERRUPTSTATE_IDLE)
+    if(Screen::interruptState == INTERRUPTSTATE_IDLE)
     {
         OutCmpA(LcdInterruptNumber) = INTERRUPT_IDLE; // Minimize overhead while still reponsive
         return;
     }
     
-    switch (interruptState)
+    switch (Screen::interruptState)
     {
         case INTERRUPTSTATE_CMD_HI1:
             OutCmpA(LcdInterruptNumber) = INTERRUPT_BUSY; // Fire faster while updating
@@ -588,75 +588,75 @@ void handleLcd()
             Screen::lcdSetDataBits(HOME_CURSOR_CMD >> 4);
             WRITE(LCD_E_PIN, HIGH);
             
-            interruptState = INTERRUPTSTATE_CMD_LO1;
+            Screen::interruptState = INTERRUPTSTATE_CMD_LO1;
             return;
             
         case INTERRUPTSTATE_CMD_LO1:
             WRITE(LCD_E_PIN, LOW);
             
-            interruptState = INTERRUPTSTATE_CMD_HI2;
+            Screen::interruptState = INTERRUPTSTATE_CMD_HI2;
             return;
             
         case INTERRUPTSTATE_CMD_HI2:
             Screen::lcdSetDataBits(HOME_CURSOR_CMD);
             WRITE(LCD_E_PIN, HIGH);
             
-            interruptState = INTERRUPTSTATE_CMD_LO2;
+            Screen::interruptState = INTERRUPTSTATE_CMD_LO2;
             return;
            
         case INTERRUPTSTATE_CMD_LO2:
             WRITE(LCD_E_PIN, LOW);
             
-            interruptState = INTERRUPTSTATE_CMD_END;
+            Screen::interruptState = INTERRUPTSTATE_CMD_END;
             return;
             
         case INTERRUPTSTATE_CMD_END:
             WRITE(LCD_RS_PIN, HIGH);
             
-            interruptState = INTERRUPTSTATE_E_GOHI;
+            Screen::interruptState = INTERRUPTSTATE_E_GOHI;
             return;
             
         case INTERRUPTSTATE_E_GOHI:
-            if (readTick & 0x01)
+            if (Screen::readTick & 0x01)
             {
-                writeByte = (*pReadCurrent >> 4);
+                writeByte = (*Screen::pReadCurrent >> 4);
             }
             else
             {
-                writeByte = *pReadCurrent;
-                ++pReadCurrent;
+                writeByte = *Screen::pReadCurrent;
+                ++Screen::pReadCurrent;
             }
-            ++readTick;
+            ++Screen::readTick;
             Screen::lcdSetDataBits(writeByte);
             WRITE(LCD_E_PIN, HIGH);
             
-            interruptState = INTERRUPTSTATE_E_GOLO;
+            Screen::interruptState = INTERRUPTSTATE_E_GOLO;
             return;
             
         case INTERRUPTSTATE_E_GOLO:
             WRITE(LCD_E_PIN, LOW);
             
-            if(pReadCurrent >= pRead->pEnd || pRead->pNext->ReadReady)
+            if(Screen::pReadCurrent >= Screen::pRead->pEnd || Screen::pRead->pNext->ReadReady)
             {
-                if (!(readTick & 0x01))
+                if (!(Screen::readTick & 0x01))
                 {
                     // Write a full byte before switching
-                    interruptState = INTERRUPTSTATE_E_GOHI;
+                    Screen::interruptState = INTERRUPTSTATE_E_GOHI;
                     return;
                 }
-                pRead->WriteReady = true;
-                pRead->ReadReady = false;
+                Screen::pRead->WriteReady = true;
+                Screen::pRead->ReadReady = false;
                 
-                pRead = pRead->pNext;
-                pReadCurrent = pRead->Buffer;
-                readTick = 0x01;
+                Screen::pRead = Screen::pRead->pNext;
+                Screen::pReadCurrent = Screen::pRead->Buffer;
+                Screen::readTick = 0x01;
               
                 // If we have data write it else go to idle state
-                interruptState = (pRead->ReadReady) ? INTERRUPTSTATE_CMD_HI1 : INTERRUPTSTATE_IDLE;
+                Screen::interruptState = (Screen::pRead->ReadReady) ? INTERRUPTSTATE_CMD_HI1 : INTERRUPTSTATE_IDLE;
             }
             else
             {
-                interruptState = INTERRUPTSTATE_E_GOHI;
+                Screen::interruptState = INTERRUPTSTATE_E_GOHI;
             }  
             return;
     }
@@ -666,14 +666,5 @@ void handleLcd()
 
 ISR(TIMER4_COMPA_vect)
 {
-//    static volatile bool running = false;
-//    if(running)
-//    {
-//        return;
-//    }
-//    running = true;
-    
-    handleLcd();
-    
-//    running = false;
+    interruptTransmit();
 }

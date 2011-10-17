@@ -120,6 +120,22 @@ public:
         WRITE(LCD_DB6_PIN, (nibble & _BV(2)) ? HIGH : LOW );
         WRITE(LCD_DB7_PIN, (nibble & _BV(3)) ? HIGH : LOW );
     }
+    
+    
+    static volatile uint8_t ops;
+    static volatile uint8_t interruptState;
+    static uint8_t readTick;
+
+    static struct LCD_BUFFER lcdBuffers[2];
+
+    static LCD_BUFFER *pRead;
+    static uint8_t *pReadCurrent;
+
+
+    static LCD_BUFFER *pWriteNext;
+    static LCD_BUFFER *pWrite;
+    static uint8_t *pWriteCurrent;
+  
 };
 
 
