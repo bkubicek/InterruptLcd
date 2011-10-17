@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "WProgram.h"
+#include "fastio.h"
 
 /*
     LCD pin configuration currently only supports 4bit and no R/W pin
@@ -108,5 +109,17 @@ void lcdPrint(uint8_t value);
 // was available
 bool lcdWriteBuffer(uint8_t *pBuffer);
 
+//internal routines
+void lcdCommandNibble(uint8_t value);
+void lcdCommand(uint8_t value);
+void lcdSyncWrite(uint8_t value);
+void lcdSyncWriteNibble(uint8_t value);
+inline void lcdSetDataBits(uint8_t nibble)
+{         
+    WRITE(LCD_DB4_PIN, (nibble & _BV(0)) ? HIGH : LOW );
+    WRITE(LCD_DB5_PIN, (nibble & _BV(1)) ? HIGH : LOW );
+    WRITE(LCD_DB6_PIN, (nibble & _BV(2)) ? HIGH : LOW );
+    WRITE(LCD_DB7_PIN, (nibble & _BV(3)) ? HIGH : LOW );
+}
 #endif
 

@@ -1,6 +1,5 @@
 #include "Screen.h"
 #include <string.h>
-#include "fastio.h"
 
 
 
@@ -564,13 +563,7 @@ void lcdSyncWriteNibble(uint8_t value)
 }
 
 
-inline void lcdSetDataBits(uint8_t nibble)
-{         
-    WRITE(LCD_DB4_PIN, (nibble & _BV(0)) ? HIGH : LOW );
-    WRITE(LCD_DB5_PIN, (nibble & _BV(1)) ? HIGH : LOW );
-    WRITE(LCD_DB6_PIN, (nibble & _BV(2)) ? HIGH : LOW );
-    WRITE(LCD_DB7_PIN, (nibble & _BV(3)) ? HIGH : LOW );
-}
+
 
 void handleLcd();
 
