@@ -4,9 +4,15 @@
 
 
 // The following protect the buffer's "Ready" states and interruptState
-#define ISR_ENTER if(Screen::ops != 0) return // Don't process interrupt if in critical block
-#define CODE_ENTER     ++Screen::ops          // Enter critical block
-#define CODE_LEAVE     --Screen::ops          // Leave critical block
+inline void isr_enter() // Don't process interrupt if in critical block
+  {if(Screen::ops != 0) return;}
+inline void code_enter()   // Enter critical block
+  {++Screen::ops;}
+inline void code_leave()  // Leave critical block
+  {--Screen::ops;}
+//#define ISR_ENTER if(Screen::ops != 0) return 
+//#define CODE_ENTER     ++Screen::ops          
+//#define CODE_LEAVE     --Screen::ops         
 
 enum{
   INTERRUPTSTATE_IDLE            /* Do nothing at a slow rate*/  , 
@@ -413,18 +419,18 @@ bool Screen::lcdLockBuffer()
 {
     pWrite = pWriteNext;
 
-    CODE_ENTER; // Syncronize WriteReady with ISR
+    code_enter(); // Syncronize WriteReady with ISR
     
     if (!pWrite->WriteReady)
     {
         //Serial.print((int)interruptState);
-        CODE_LEAVE;
+        code_leave();
         pWrite = 0;
         return false;
     }
     pWrite->WriteReady = false;
     
-    CODE_LEAVE; // End syncronize WriteReady with ISR
+    code_leave(); // End syncronize WriteReady with ISR
     
     pWriteCurrent = pWrite->Buffer;
     memset(pWriteCurrent, 0x20, LCD_ROWS * LCD_COLS); 
@@ -433,7 +439,7 @@ bool Screen::lcdLockBuffer()
 
 void Screen::lcdWriteBuffer()
 {
-    CODE_ENTER; // Synchronize ReadReady and writeState with ISR
+    code_enter(); // Synchronize ReadReady and writeState with ISR
     
     pWrite->ReadReady = true;
     if (interruptState == INTERRUPTSTATE_IDLE)
@@ -441,7 +447,7 @@ void Screen::lcdWriteBuffer()
         interruptState = INTERRUPTSTATE_CMD_HI1;
     }
     
-    CODE_LEAVE; // End synchronize ReadReady and writeState with ISR
+    code_leave(); // End synchronize ReadReady and writeState with ISR
 
     pWriteNext = pWrite->pNext;
     pWrite = 0;
@@ -450,21 +456,21 @@ void Screen::lcdWriteBuffer()
 
 bool Screen::lcdWriteBuffer(uint8_t *pBuffer)
 {
-    CODE_ENTER; // Syncronize WriteReady with ISR
+    code_enter(); // Syncronize WriteReady with ISR
     
     if (!pWriteNext->WriteReady)
     {
         //Serial.print((int)interruptState);
-        CODE_LEAVE;
+        code_leave();
         return false;
     }
     pWriteNext->WriteReady = false;
     
-    CODE_LEAVE; // End syncronize WriteReady with ISR
+    code_leave(); // End syncronize WriteReady with ISR
     
     memcpy(pWriteNext->Buffer, pBuffer, LCD_ROWS * LCD_COLS); 
     
-    CODE_ENTER; // Synchronize ReadReady and writeState with ISR
+    code_enter(); // Synchronize ReadReady and writeState with ISR
     
     pWriteNext->ReadReady = true;
     if (interruptState == INTERRUPTSTATE_IDLE)
@@ -472,7 +478,7 @@ bool Screen::lcdWriteBuffer(uint8_t *pBuffer)
         interruptState = INTERRUPTSTATE_CMD_HI1;
     }
     
-    CODE_LEAVE; // End synchronize ReadReady and writeState with ISR
+    code_leave(); // End synchronize ReadReady and writeState with ISR
 
     pWriteNext = pWriteNext->pNext;
     
@@ -585,7 +591,7 @@ void Screen::lcdSyncWriteNibble(uint8_t value)
 void interruptTransmit()
 {
     uint8_t writeByte;
-    ISR_ENTER;
+    isr_enter();
     
     // We know the user isn't altering buffer state
     // and we will complete before they execute again
