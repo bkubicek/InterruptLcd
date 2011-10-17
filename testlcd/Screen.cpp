@@ -4,8 +4,8 @@
 
 
 // The following protect the buffer's "Ready" states and interruptState
-inline void isr_enter() // Don't process interrupt if in critical block
-  {if(Screen::ops != 0) return;}
+inline bool isr_enter() // Don't process interrupt if in critical block
+  {return Screen::ops != 0;}
 inline void code_enter()   // Enter critical block
   {++Screen::ops;}
 inline void code_leave()  // Leave critical block
@@ -589,7 +589,7 @@ void Screen::lcdSyncWriteNibble(uint8_t value)
 void interruptTransmit()
 {
   uint8_t writeByte;
-  isr_enter();
+  if(isr_enter()) return;
   
   // We know the user isn't altering buffer state
   // and we will complete before they execute again
