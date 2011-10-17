@@ -10,9 +10,7 @@ inline void code_enter()   // Enter critical block
   {++Screen::ops;}
 inline void code_leave()  // Leave critical block
   {--Screen::ops;}
-//#define ISR_ENTER if(Screen::ops != 0) return 
-//#define CODE_ENTER     ++Screen::ops          
-//#define CODE_LEAVE     --Screen::ops         
+     
 
 enum{
   INTERRUPTSTATE_IDLE            /* Do nothing at a slow rate*/  , 
@@ -105,7 +103,7 @@ uint8_t *Screen::pWriteCurrent=0;
 Screen::Screen(uint8_t rs, uint8_t enable,
     uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3)
 {
-    _rs_pin = rs;
+  _rs_pin = rs;
   _enable_pin = enable;
   
   _data_pins[0] = d0;
@@ -113,17 +111,17 @@ Screen::Screen(uint8_t rs, uint8_t enable,
   _data_pins[2] = d2;
   _data_pins[3] = d3;
   
-    memset(buffer, ' ', LCD_ROWS * LCD_COLS);
-    pCurrent = buffer;
+  memset(buffer, ' ', LCD_ROWS * LCD_COLS);
+  pCurrent = buffer;
 }
 
 Screen::Screen(char* baseScreen)
 {
-    for (int row = 0; row < LCD_ROWS; ++row)
-    {
-        printRow(row, baseScreen + row * LCD_COLS);
-    }
-    pCurrent = buffer;
+  for (int row = 0; row < LCD_ROWS; ++row)
+  {
+    printRow(row, baseScreen + row * LCD_COLS);
+  }
+  pCurrent = buffer;
 }
 
 void Screen::begin(uint8_t cols, uint8_t rows)
@@ -183,204 +181,204 @@ void Screen::begin(uint8_t cols, uint8_t rows)
 void Screen::setCursorRow(int row)
 {
     
-    switch (row)
-    {
-    case 0:
-        pCurrent = buffer;
-        break;
+  switch (row)
+  {
+  case 0:
+      pCurrent = buffer;
+      break;
 
-    case 1:
-        pCurrent = buffer + 2 * LCD_COLS;
-        break;
+  case 1:
+      pCurrent = buffer + 2 * LCD_COLS;
+      break;
 
-    case 2:
-        pCurrent = buffer + LCD_COLS;
-        break;
+  case 2:
+      pCurrent = buffer + LCD_COLS;
+      break;
 
-    case 3:
-        pCurrent = buffer + 3 * LCD_COLS;
-        break;
-    }
+  case 3:
+      pCurrent = buffer + 3 * LCD_COLS;
+      break;
+  }
 }
 
 void Screen::print(char ch)
 {
-    *pCurrent++ = ch;
+  *pCurrent++ = ch;
 }
 
 void Screen::print(char *pString)
 {
-    while (*pString)
-    {
-        *pWriteCurrent++ = *pString++;
-    }
+  while (*pString)
+  {
+    *pWriteCurrent++ = *pString++;
+  }
 }
 
 void Screen::print(char *text, int count)
 {
-    while (*text && count)
-    {
-        *pCurrent++ = *text++;
-        --count;
-    }
-    
-    while (count)
-    {
-        *pCurrent++ = ' ';
-        --count;
-    }
+  while (*text && count)
+  {
+    *pCurrent++ = *text++;
+    --count;
+  }
+  
+  while (count)
+  {
+    *pCurrent++ = ' ';
+     --count;
+  }
 }
 
 void Screen::createChar(uint8_t location, uint8_t charmap[])   
 {
-    int i;
-    
-    lcdCommand(WRITE_CGRAM_CMD | ((location & 0x07) << 3)); // Lock location to 0-7 and multiple by 8
-    
-    for (i = 0; i < 8; ++i)
-    {
-        lcdSyncWrite(charmap[i]);
-    }
+  int i;
+  
+  lcdCommand(WRITE_CGRAM_CMD | ((location & 0x07) << 3)); // Lock location to 0-7 and multiple by 8
+  
+  for (i = 0; i < 8; ++i)
+  {
+    lcdSyncWrite(charmap[i]);
+  }
 }
 
 void Screen::printRow(int row, char *text)
 {
-    setCursorRow(row);
-    print(text, LCD_COLS);
+  setCursorRow(row);
+  print(text, LCD_COLS);
 }
 
 bool Screen::display()
 {
-    return lcdWriteBuffer((uint8_t*)buffer);
+  return lcdWriteBuffer((uint8_t*)buffer);
 }
 
 // Print float with +123.4 format
 void Screen::printFloat31(float value)
 {
-    int total;
-    int digit;
-    if (value >= 0)
-    {
-        *pCurrent++ = '+';
-        value *= 0.01;
-    }
-    else
-    {
-        *pCurrent++ = '-';
-        value *= -0.01;
-    }
+  int total;
+  int digit;
+  if (value >= 0)
+  {
+      *pCurrent++ = '+';
+      value *= 0.01;
+  }
+  else
+  {
+      *pCurrent++ = '-';
+      value *= -0.01;
+  }
 
-    digit = value;  
+  digit = value;  
 
-    *pCurrent++ = digit + '0'; 
-    total = digit * 10; 
-    value *= 10.0;
-    digit = (int)value - total;
+  *pCurrent++ = digit + '0'; 
+  total = digit * 10; 
+  value *= 10.0;
+  digit = (int)value - total;
 
-    *pCurrent++ = digit + '0';
-    total += digit;
-    total *= 10; 
-    value *= 10.0;
-    digit = (int)value - total;
+  *pCurrent++ = digit + '0';
+  total += digit;
+  total *= 10; 
+  value *= 10.0;
+  digit = (int)value - total;
 
-    *pCurrent++ = digit + '0'; 
-    total += digit;
-    total *= 10; 
-    value *= 10.0;
-    digit = (int)value - total;
+  *pCurrent++ = digit + '0'; 
+  total += digit;
+  total *= 10; 
+  value *= 10.0;
+  digit = (int)value - total;
 
-    *pCurrent++ = '.';
+  *pCurrent++ = '.';
 
-    *pCurrent++ = digit + '0';
+  *pCurrent++ = digit + '0';
 }
 
 //  Print float with +1234.5 format
 void Screen::printFloat41(float value)
 {
-    int total;
-    int digit;
-    if (value >= 0)
-    {
-        *pCurrent++ = '+';
-        value *= 0.001;
-    }
-    else
-    {
-        *pCurrent++ = '-';
-        value *= -0.001;
-    }
+  int total;
+  int digit;
+  if (value >= 0)
+  {
+      *pCurrent++ = '+';
+      value *= 0.001;
+  }
+  else
+  {
+      *pCurrent++ = '-';
+      value *= -0.001;
+  }
 
-    digit = value;  
+  digit = value;  
 
-    *pCurrent++ = digit + '0'; 
-    total = digit * 10; 
-    value *= 10.0;
-    digit = (int)value - total;
+  *pCurrent++ = digit + '0'; 
+  total = digit * 10; 
+  value *= 10.0;
+  digit = (int)value - total;
 
-    *pCurrent++ = digit + '0';
-    total += digit;
-    total *= 10; 
-    value *= 10.0;
-    digit = (int)value - total;
+  *pCurrent++ = digit + '0';
+  total += digit;
+  total *= 10; 
+  value *= 10.0;
+  digit = (int)value - total;
 
-    *pCurrent++ = digit + '0';
-    total += digit;
-    total *= 10; 
-    value *= 10.0;
-    digit = (int)value - total;
+  *pCurrent++ = digit + '0';
+  total += digit;
+  total *= 10; 
+  value *= 10.0;
+  digit = (int)value - total;
 
-    *pCurrent++ = digit + '0'; 
-    total += digit;
-    total *= 10; 
-    value *= 10.0;
-    digit = (int)value - total;
+  *pCurrent++ = digit + '0'; 
+  total += digit;
+  total *= 10; 
+  value *= 10.0;
+  digit = (int)value - total;
 
-    *pCurrent++ = '.';
+  *pCurrent++ = '.';
 
-    *pCurrent++ = digit + '0';
+  *pCurrent++ = digit + '0';
 }
 
 void Screen::print(int value)
 {
-    int digit;
-    bool printing = false;
-    
-    if (value < 0)
-    {
-        *pCurrent++ = '-';
-        value *= -1;
-    }
-    
-    if (value > 10000 || printing)
-    {
-        digit = value / 10000;
-        *pCurrent++ = digit + '0';
-        value -= digit * 10000;
-        printing = true;
-    }
-    if (value > 1000 || printing)
-    {
-        digit = value / 1000;
-        *pCurrent++ = digit + '0';
-        value -= digit * 1000;
-        printing = true;
-    }
-    if (value > 100 || printing)
-    {
-        digit = value / 100;
-        *pCurrent++ = digit + '0';
-        value -= digit * 100;
-        printing = true;
-    }
-    if (value > 10 || printing)
-    {
-        digit = value / 10;
-        *pCurrent++ = digit + '0';
-        value -= digit * 10;
-        printing = true;
-    }
+  int digit;
+  bool printing = false;
+  
+  if (value < 0)
+  {
+      *pCurrent++ = '-';
+      value *= -1;
+  }
+  
+  if (value > 10000 || printing)
+  {
+      digit = value / 10000;
+      *pCurrent++ = digit + '0';
+      value -= digit * 10000;
+      printing = true;
+  }
+  if (value > 1000 || printing)
+  {
+      digit = value / 1000;
+      *pCurrent++ = digit + '0';
+      value -= digit * 1000;
+      printing = true;
+  }
+  if (value > 100 || printing)
+  {
+      digit = value / 100;
+      *pCurrent++ = digit + '0';
+      value -= digit * 100;
+      printing = true;
+  }
+  if (value > 10 || printing)
+  {
+      digit = value / 10;
+      *pCurrent++ = digit + '0';
+      value -= digit * 10;
+      printing = true;
+  }
 
-    *pCurrent++ = value + '0';
+  *pCurrent++ = value + '0';
 }
 
 
@@ -388,101 +386,101 @@ void Screen::print(int value)
 void Screen::setCursor(int col, int row)
 {
   pCurrent += col;
-    switch (row)
-    {
-        case 0:
-            pWriteCurrent = pWrite->Buffer + col;
-            break;
-            
-        case 1:
-            pWriteCurrent = pWrite->Buffer + 2 * LCD_COLS + col;
-            break;
-            
-        case 2:
-            pWriteCurrent = pWrite->Buffer + LCD_COLS + col;
-            break;
-            
-        case 3:
-            pWriteCurrent = pWrite->Buffer + 3 * LCD_COLS + col;
-            break;
-    }
+  switch (row)
+  {
+  case 0:
+      pWriteCurrent = pWrite->Buffer + col;
+      break;
+      
+  case 1:
+      pWriteCurrent = pWrite->Buffer + 2 * LCD_COLS + col;
+      break;
+      
+  case 2:
+      pWriteCurrent = pWrite->Buffer + LCD_COLS + col;
+      break;
+      
+  case 3:
+      pWriteCurrent = pWrite->Buffer + 3 * LCD_COLS + col;
+      break;
+  }
 }
 
 
 
 void Screen::lcdPrint(uint8_t value)
 {
-    *pWriteCurrent++ = value;
+  *pWriteCurrent++ = value;
 }
 
 bool Screen::lcdLockBuffer()
 {
-    pWrite = pWriteNext;
+  pWrite = pWriteNext;
 
-    code_enter(); // Syncronize WriteReady with ISR
-    
-    if (!pWrite->WriteReady)
-    {
-        //Serial.print((int)interruptState);
-        code_leave();
-        pWrite = 0;
-        return false;
-    }
-    pWrite->WriteReady = false;
-    
-    code_leave(); // End syncronize WriteReady with ISR
-    
-    pWriteCurrent = pWrite->Buffer;
-    memset(pWriteCurrent, 0x20, LCD_ROWS * LCD_COLS); 
-    return true;
+  code_enter(); // Syncronize WriteReady with ISR
+  
+  if (!pWrite->WriteReady)
+  {
+    //Serial.print((int)interruptState);
+    code_leave();
+    pWrite = 0;
+    return false;
+  }
+  pWrite->WriteReady = false;
+  
+  code_leave(); // End syncronize WriteReady with ISR
+  
+  pWriteCurrent = pWrite->Buffer;
+  memset(pWriteCurrent, 0x20, LCD_ROWS * LCD_COLS); 
+  return true;
 }
 
 void Screen::lcdWriteBuffer()
 {
-    code_enter(); // Synchronize ReadReady and writeState with ISR
-    
-    pWrite->ReadReady = true;
-    if (interruptState == INTERRUPTSTATE_IDLE)
-    {
-        interruptState = INTERRUPTSTATE_CMD_HI1;
-    }
-    
-    code_leave(); // End synchronize ReadReady and writeState with ISR
+  code_enter(); // Synchronize ReadReady and writeState with ISR
+  
+  pWrite->ReadReady = true;
+  if (interruptState == INTERRUPTSTATE_IDLE)
+  {
+    interruptState = INTERRUPTSTATE_CMD_HI1;
+  }
+  
+  code_leave(); // End synchronize ReadReady and writeState with ISR
 
-    pWriteNext = pWrite->pNext;
-    pWrite = 0;
-    pWriteCurrent = 0;
+  pWriteNext = pWrite->pNext;
+  pWrite = 0;
+  pWriteCurrent = 0;
 }
 
 bool Screen::lcdWriteBuffer(uint8_t *pBuffer)
 {
-    code_enter(); // Syncronize WriteReady with ISR
-    
-    if (!pWriteNext->WriteReady)
-    {
-        //Serial.print((int)interruptState);
-        code_leave();
-        return false;
-    }
-    pWriteNext->WriteReady = false;
-    
-    code_leave(); // End syncronize WriteReady with ISR
-    
-    memcpy(pWriteNext->Buffer, pBuffer, LCD_ROWS * LCD_COLS); 
-    
-    code_enter(); // Synchronize ReadReady and writeState with ISR
-    
-    pWriteNext->ReadReady = true;
-    if (interruptState == INTERRUPTSTATE_IDLE)
-    {
-        interruptState = INTERRUPTSTATE_CMD_HI1;
-    }
-    
-    code_leave(); // End synchronize ReadReady and writeState with ISR
+  code_enter(); // Syncronize WriteReady with ISR
+  
+  if (!pWriteNext->WriteReady)
+  {
+    //Serial.print((int)interruptState);
+    code_leave();
+    return false;
+  }
+  pWriteNext->WriteReady = false;
+  
+  code_leave(); // End syncronize WriteReady with ISR
+  
+  memcpy(pWriteNext->Buffer, pBuffer, LCD_ROWS * LCD_COLS); 
+  
+  code_enter(); // Synchronize ReadReady and writeState with ISR
+  
+  pWriteNext->ReadReady = true;
+  if (interruptState == INTERRUPTSTATE_IDLE)
+  {
+    interruptState = INTERRUPTSTATE_CMD_HI1;
+  }
+  
+  code_leave(); // End synchronize ReadReady and writeState with ISR
 
-    pWriteNext = pWriteNext->pNext;
-    
-    return true;
+  pWriteNext = pWriteNext->pNext;
+  
+  return true;
 }
 
 /************************************************************************
@@ -495,92 +493,92 @@ Internal functions
 
 void Screen::DebugState(struct LCD_BUFFER *pBuffer)
 {
-    int i,j, k;
-    Serial.print("Buffer=");
-    Serial.println((int)pBuffer);
-    if (pBuffer == 0)
+  int i,j, k;
+  Serial.print("Buffer=");
+  Serial.println((int)pBuffer);
+  if (pBuffer == 0)
+  {
+      return;
+  }
+  Serial.print("WR=");
+  Serial.println((int)pBuffer->WriteReady);
+  Serial.print("RR=");
+  Serial.println((int)pBuffer->ReadReady);
+  for (i = 0, k = 0; i < LCD_ROWS; ++i)
+  {
+    for (j = 0; j <  LCD_COLS; ++j)
     {
-        return;
+        Serial.print(pBuffer->Buffer[k],HEX);
+        Serial.print(' ');
+        ++k;
     }
-    Serial.print("WR=");
-    Serial.println((int)pBuffer->WriteReady);
-    Serial.print("RR=");
-    Serial.println((int)pBuffer->ReadReady);
-    for (i = 0, k = 0; i < LCD_ROWS; ++i)
-    {
-        for (j = 0; j <  LCD_COLS; ++j)
-        {
-            Serial.print(pBuffer->Buffer[k],HEX);
-            Serial.print(' ');
-            ++k;
-        }
-        Serial.println();
-    }
-    Serial.print("e=");
-    Serial.println((int)pBuffer->pEnd);
-    Serial.print("n=");
-    Serial.println((int)pBuffer->pNext);
+    Serial.println();
+  }
+  Serial.print("e=");
+  Serial.println((int)pBuffer->pEnd);
+  Serial.print("n=");
+  Serial.println((int)pBuffer->pNext);
 }
 
 void Screen::DebugState()
 {
-    cli();
-    Serial.println();
-    Serial.print("pRead ");
-    DebugState(pRead);
-    Serial.print("pReadCurrent=");
-    Serial.println((int)pReadCurrent);
-    Serial.print("readTick=");
-    Serial.println((int)readTick);
-    
-    Serial.print("pWrite ");
-    DebugState(pWrite);
-    Serial.print("pWriteNext ");
-    DebugState(pWriteNext);
-    Serial.print("pWriteCurrent=");
-    Serial.println((int)pWriteCurrent);
-    
-    Serial.print("ops=");
-    Serial.println((int)ops);
+  cli();
+  Serial.println();
+  Serial.print("pRead ");
+  DebugState(pRead);
+  Serial.print("pReadCurrent=");
+  Serial.println((int)pReadCurrent);
+  Serial.print("readTick=");
+  Serial.println((int)readTick);
+  
+  Serial.print("pWrite ");
+  DebugState(pWrite);
+  Serial.print("pWriteNext ");
+  DebugState(pWriteNext);
+  Serial.print("pWriteCurrent=");
+  Serial.println((int)pWriteCurrent);
+  
+  Serial.print("ops=");
+  Serial.println((int)ops);
 
-    Serial.print("interruptState=");
-    Serial.println((int)interruptState);
-    sei();
+  Serial.print("interruptState=");
+  Serial.println((int)interruptState);
+  sei();
 }
 
 #endif
 
 void Screen::lcdCommand(uint8_t value)
 {
-    digitalWrite(_rs_pin, LOW);
-    lcdSyncWrite(value);
-    digitalWrite(_rs_pin, HIGH);
+  digitalWrite(_rs_pin, LOW);
+  lcdSyncWrite(value);
+  digitalWrite(_rs_pin, HIGH);
 }
 
 void Screen::lcdCommandNibble(uint8_t value)
 {
-    digitalWrite(_rs_pin, LOW);
-    lcdSyncWriteNibble(value);
-    digitalWrite(_rs_pin, HIGH);
+  digitalWrite(_rs_pin, LOW);
+  lcdSyncWriteNibble(value);
+  digitalWrite(_rs_pin, HIGH);
 }
 
 void Screen::lcdSyncWrite(uint8_t value)
 {
-    lcdSyncWriteNibble(value >> 4);
-    lcdSyncWriteNibble(value);
+  lcdSyncWriteNibble(value >> 4);
+  lcdSyncWriteNibble(value);
 }
 
 void Screen::lcdSyncWriteNibble(uint8_t value)
 {
-    lcdSetDataBits(value);        
-    
-    digitalWrite(_enable_pin, HIGH);
-    
-    delayMicroseconds(1);
-    
-    digitalWrite(_enable_pin, LOW);
-    
-    delayMicroseconds(50);
+  lcdSetDataBits(value);        
+  
+  digitalWrite(_enable_pin, HIGH);
+  
+  delayMicroseconds(1);
+  
+  digitalWrite(_enable_pin, LOW);
+  
+  delayMicroseconds(50);
 }
 
 
@@ -590,102 +588,102 @@ void Screen::lcdSyncWriteNibble(uint8_t value)
 
 void interruptTransmit()
 {
-    uint8_t writeByte;
-    isr_enter();
-    
-    // We know the user isn't altering buffer state
-    // and we will complete before they execute again
-    if(Screen::interruptState == INTERRUPTSTATE_IDLE)
-    {
-        OutCmpA(LcdInterruptNumber) = INTERRUPT_IDLE; // Minimize overhead while still reponsive
-        return;
-    }
-    
-    switch (Screen::interruptState)
-    {
-        case INTERRUPTSTATE_CMD_HI1:
-            OutCmpA(LcdInterruptNumber) = INTERRUPT_BUSY; // Fire faster while updating
-            digitalWrite(_rs_pin, LOW);
-            Screen::lcdSetDataBits(HOME_CURSOR_CMD >> 4);
-            digitalWrite(_enable_pin, HIGH);
-            
-            Screen::interruptState = INTERRUPTSTATE_CMD_LO1;
-            return;
-            
-        case INTERRUPTSTATE_CMD_LO1:
-            digitalWrite(_enable_pin, LOW);
-            
-            Screen::interruptState = INTERRUPTSTATE_CMD_HI2;
-            return;
-            
-        case INTERRUPTSTATE_CMD_HI2:
-            Screen::lcdSetDataBits(HOME_CURSOR_CMD);
-            digitalWrite(_enable_pin, HIGH);
-            
-            Screen::interruptState = INTERRUPTSTATE_CMD_LO2;
-            return;
-           
-        case INTERRUPTSTATE_CMD_LO2:
-            digitalWrite(_enable_pin, LOW);
-            
-            Screen::interruptState = INTERRUPTSTATE_CMD_END;
-            return;
-            
-        case INTERRUPTSTATE_CMD_END:
-            digitalWrite(_rs_pin, HIGH);
-            
+  uint8_t writeByte;
+  isr_enter();
+  
+  // We know the user isn't altering buffer state
+  // and we will complete before they execute again
+  if(Screen::interruptState == INTERRUPTSTATE_IDLE)
+  {
+      OutCmpA(LcdInterruptNumber) = INTERRUPT_IDLE; // Minimize overhead while still reponsive
+      return;
+  }
+  
+  switch (Screen::interruptState)
+  {
+  case INTERRUPTSTATE_CMD_HI1:
+      OutCmpA(LcdInterruptNumber) = INTERRUPT_BUSY; // Fire faster while updating
+      digitalWrite(_rs_pin, LOW);
+      Screen::lcdSetDataBits(HOME_CURSOR_CMD >> 4);
+      digitalWrite(_enable_pin, HIGH);
+      
+      Screen::interruptState = INTERRUPTSTATE_CMD_LO1;
+      return;
+      
+  case INTERRUPTSTATE_CMD_LO1:
+      digitalWrite(_enable_pin, LOW);
+      
+      Screen::interruptState = INTERRUPTSTATE_CMD_HI2;
+      return;
+      
+  case INTERRUPTSTATE_CMD_HI2:
+      Screen::lcdSetDataBits(HOME_CURSOR_CMD);
+      digitalWrite(_enable_pin, HIGH);
+      
+      Screen::interruptState = INTERRUPTSTATE_CMD_LO2;
+      return;
+      
+  case INTERRUPTSTATE_CMD_LO2:
+      digitalWrite(_enable_pin, LOW);
+      
+      Screen::interruptState = INTERRUPTSTATE_CMD_END;
+      return;
+      
+  case INTERRUPTSTATE_CMD_END:
+      digitalWrite(_rs_pin, HIGH);
+      
+      Screen::interruptState = INTERRUPTSTATE_E_GOHI;
+      return;
+      
+  case INTERRUPTSTATE_E_GOHI:
+      if (Screen::readTick & 0x01)
+      {
+        writeByte = (*Screen::pReadCurrent >> 4);
+      }
+      else
+      {
+        writeByte = *Screen::pReadCurrent;
+        ++Screen::pReadCurrent;
+      }
+      ++Screen::readTick;
+      Screen::lcdSetDataBits(writeByte);
+      digitalWrite(_enable_pin, HIGH);
+      
+      Screen::interruptState = INTERRUPTSTATE_E_GOLO;
+      return;
+      
+  case INTERRUPTSTATE_E_GOLO:
+      digitalWrite(_enable_pin, LOW);
+      
+      if(Screen::pReadCurrent >= Screen::pRead->pEnd || Screen::pRead->pNext->ReadReady)
+      {
+        if (!(Screen::readTick & 0x01))
+        {
+            // Write a full byte before switching
             Screen::interruptState = INTERRUPTSTATE_E_GOHI;
             return;
-            
-        case INTERRUPTSTATE_E_GOHI:
-            if (Screen::readTick & 0x01)
-            {
-                writeByte = (*Screen::pReadCurrent >> 4);
-            }
-            else
-            {
-                writeByte = *Screen::pReadCurrent;
-                ++Screen::pReadCurrent;
-            }
-            ++Screen::readTick;
-            Screen::lcdSetDataBits(writeByte);
-            digitalWrite(_enable_pin, HIGH);
-            
-            Screen::interruptState = INTERRUPTSTATE_E_GOLO;
-            return;
-            
-        case INTERRUPTSTATE_E_GOLO:
-            digitalWrite(_enable_pin, LOW);
-            
-            if(Screen::pReadCurrent >= Screen::pRead->pEnd || Screen::pRead->pNext->ReadReady)
-            {
-                if (!(Screen::readTick & 0x01))
-                {
-                    // Write a full byte before switching
-                    Screen::interruptState = INTERRUPTSTATE_E_GOHI;
-                    return;
-                }
-                Screen::pRead->WriteReady = true;
-                Screen::pRead->ReadReady = false;
-                
-                Screen::pRead = Screen::pRead->pNext;
-                Screen::pReadCurrent = Screen::pRead->Buffer;
-                Screen::readTick = 0x01;
-              
-                // If we have data write it else go to idle state
-                Screen::interruptState = (Screen::pRead->ReadReady) ? INTERRUPTSTATE_CMD_HI1 : INTERRUPTSTATE_IDLE;
-            }
-            else
-            {
-                Screen::interruptState = INTERRUPTSTATE_E_GOHI;
-            }  
-            return;
-    }
+        }
+        Screen::pRead->WriteReady = true;
+        Screen::pRead->ReadReady = false;
+        
+        Screen::pRead = Screen::pRead->pNext;
+        Screen::pReadCurrent = Screen::pRead->Buffer;
+        Screen::readTick = 0x01;
+      
+        // If we have data write it else go to idle state
+        Screen::interruptState = (Screen::pRead->ReadReady) ? INTERRUPTSTATE_CMD_HI1 : INTERRUPTSTATE_IDLE;
+      }
+      else
+      {
+        Screen::interruptState = INTERRUPTSTATE_E_GOHI;
+      }  
+      return;
+  }
 }
 
 
 
 ISR(TIMER4_COMPA_vect)
 {
-    interruptTransmit();
+  interruptTransmit();
 }
