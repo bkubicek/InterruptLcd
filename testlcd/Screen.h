@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "WProgram.h"
-#include "fastio.h"
+
 
 /*
     LCD pin configuration currently only supports 4bit and no R/W pin
