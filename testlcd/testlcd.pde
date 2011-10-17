@@ -106,22 +106,22 @@ void loop()
     if(lcdLockBuffer())
     {
         uint8_t val = 0x30 + count;
-        lcdSetCursor(0,0);
+        welcomeScreen.setCursor(0,0);
         for (i = 0; i < 20; ++i)
         {
             lcdPrint(val);
         }
-        lcdSetCursor(0,1);
+        welcomeScreen.setCursor(0,1);
         for (i = 0; i < 20; ++i)
         {
             lcdPrint(0x30 + count);
         }
-        lcdSetCursor(0,2);
+        welcomeScreen.setCursor(0,2);
         for (i = 0; i < 20; ++i)
         {
             lcdPrint(0x30 + count);
         }
-        lcdSetCursor(0,3);
+        welcomeScreen.setCursor(0,3);
         for (i = 0; i < 20; ++i)
         {
             lcdPrint(0x30 + count);
@@ -147,11 +147,11 @@ void TestCustomChar()
   
     if(lcdLockBuffer())
     {
-        lcdSetCursor(0,0);
+        welcomeScreen.setCursor(0,0);
         lcdPrint(1);
         lcdPrint(" Degree.");
         
-        lcdSetCursor(0,1);
+        welcomeScreen.setCursor(0,1);
         lcdPrint(2);
         lcdPrint(" Thermometer.");
         lcdWriteBuffer();

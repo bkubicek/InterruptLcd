@@ -160,14 +160,9 @@ void Screen::begin(uint8_t cols, uint8_t rows)
 }
 
 
-void Screen::setCursor(int col, int row)
-{
-    setCursorRow(row);
-    pCurrent += col;
-}
-
 void Screen::setCursorRow(int row)
 {
+    
     switch (row)
     {
     case 0:
@@ -370,10 +365,9 @@ void Screen::print(int value)
 
 
 
-
-
-void lcdSetCursor(int col, int row)
+void Screen::setCursor(int col, int row)
 {
+  pCurrent += col;
     switch (row)
     {
         case 0:

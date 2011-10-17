@@ -98,8 +98,7 @@ bool lcdLockBuffer();
 // lcdWriteBuffer - Called at the end of an update to prepare the result for display.
 void lcdWriteBuffer();
 
-// Set the current write position in the buffer.
-void lcdSetCursor(int col, int row);
+
 
 // Print a nul treminated string of characters caller should limit to the remaining length 
 // of the current row. This method advances the current write postition.
