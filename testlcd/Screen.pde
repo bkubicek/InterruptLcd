@@ -9,14 +9,16 @@
 #define CODE_ENTER     ++ops          // Enter critical block
 #define CODE_LEAVE     --ops          // Leave critical block
 
-#define INTERRUPTSTATE_IDLE        0    // Do nothing at a slow rate
-#define INTERRUPTSTATE_CMD_HI1     1    // Home cursor, send first nibble - RS Low, E High, fast rate
-#define INTERRUPTSTATE_CMD_LO1     2    // Home cursor, end first nibble - E Low
-#define INTERRUPTSTATE_CMD_HI2     3    // Home cursor, send second nibble - E High 
-#define INTERRUPTSTATE_CMD_LO2     4    // Home cursor, end second nibble - E Low
-#define INTERRUPTSTATE_CMD_END     5    // Home cursor, end the command - RS High
-#define INTERRUPTSTATE_E_GOHI      6    // Data loop, start send data - E High
-#define INTERRUPTSTATE_E_GOLO      7    // Data loop, end send data - E Low
+enum{
+  INTERRUPTSTATE_IDLE            /* Do nothing at a slow rate*/  , 
+  INTERRUPTSTATE_CMD_HI1         /* Home cursor, send first nibble - RS Low, E High, fast rate*/  , 
+  INTERRUPTSTATE_CMD_LO1         /* Home cursor, end first nibble - E Low*/  , 
+  INTERRUPTSTATE_CMD_HI2         /* Home cursor, send second nibble - E High*/   , 
+  INTERRUPTSTATE_CMD_LO2         /* Home cursor, end second nibble - E Low*/  , 
+  INTERRUPTSTATE_CMD_END         /* Home cursor, end the command - RS High*/  , 
+  INTERRUPTSTATE_E_GOHI          /* Data loop, start send data - E High*/  , 
+  INTERRUPTSTATE_E_GOLO          /* Data loop, end send data - E Low*/
+};
 
 #define INITIALIZE_CMD         0x03
 #define SET_4BIT_CMD           0x02
