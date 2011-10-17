@@ -89,7 +89,7 @@ void setup()
     while(1);
    
     DebugState();
-    while(!lcdLockBuffer())
+    while(!welcomeScreen.lcdLockBuffer())
     {
         delay(1);
     }
@@ -103,30 +103,30 @@ void loop()
     if (count >= 10) count = 0;
     entry = millis();
 
-    if(lcdLockBuffer())
+    if(welcomeScreen.lcdLockBuffer())
     {
         uint8_t val = 0x30 + count;
         welcomeScreen.setCursor(0,0);
         for (i = 0; i < 20; ++i)
         {
-            lcdPrint(val);
+            welcomeScreen.lcdPrint(val);
         }
         welcomeScreen.setCursor(0,1);
         for (i = 0; i < 20; ++i)
         {
-            lcdPrint(0x30 + count);
+            welcomeScreen.lcdPrint(0x30 + count);
         }
         welcomeScreen.setCursor(0,2);
         for (i = 0; i < 20; ++i)
         {
-            lcdPrint(0x30 + count);
+            welcomeScreen.lcdPrint(0x30 + count);
         }
         welcomeScreen.setCursor(0,3);
         for (i = 0; i < 20; ++i)
         {
-            lcdPrint(0x30 + count);
+            welcomeScreen.lcdPrint(0x30 + count);
         }
-        lcdWriteBuffer();
+        welcomeScreen.lcdWriteBuffer();
     }
     else
     {
@@ -145,16 +145,16 @@ void TestCustomChar()
   welcomeScreen.createChar(1, Degree);
   welcomeScreen.createChar(2, Thermometer);
   
-    if(lcdLockBuffer())
+    if(welcomeScreen.lcdLockBuffer())
     {
         welcomeScreen.setCursor(0,0);
-        lcdPrint(1);
+        welcomeScreen.lcdPrint(1);
         welcomeScreen.print(" Degree.");
         
         welcomeScreen.setCursor(0,1);
-        lcdPrint(2);
+        welcomeScreen.lcdPrint(2);
         welcomeScreen.print(" Thermometer.");
-        lcdWriteBuffer();
+        welcomeScreen.lcdWriteBuffer();
     }
     
     while(true);
@@ -162,7 +162,7 @@ void TestCustomChar()
 
 void TestWriteBuffer()
 {
-    lcdWriteBuffer(Screen1);
+    welcomeScreen.lcdWriteBuffer(Screen1);
     
     while(true);
 }

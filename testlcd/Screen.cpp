@@ -108,54 +108,54 @@ Screen::Screen(char* baseScreen)
 void Screen::begin(uint8_t cols, uint8_t rows)
 {
  SET_OUTPUT(LCD_RS_PIN);
-    SET_OUTPUT(LCD_E_PIN);
-  
-    SET_OUTPUT(LCD_DB4_PIN);
-    SET_OUTPUT(LCD_DB5_PIN);
-    SET_OUTPUT(LCD_DB6_PIN);
-    SET_OUTPUT(LCD_DB7_PIN);
+  SET_OUTPUT(LCD_E_PIN);
 
-    delayMicroseconds(50000);            // 15ms after 4.5V or 40ms after 2.7V
-    lcdCommandNibble(INITIALIZE_CMD);
-    delayMicroseconds(4500);             // >4.1ms
-    lcdCommandNibble(INITIALIZE_CMD);
-    delayMicroseconds(150);              // > 100
-    lcdCommandNibble(INITIALIZE_CMD);
+  SET_OUTPUT(LCD_DB4_PIN);
+  SET_OUTPUT(LCD_DB5_PIN);
+  SET_OUTPUT(LCD_DB6_PIN);
+  SET_OUTPUT(LCD_DB7_PIN);
+
+  delayMicroseconds(50000);            // 15ms after 4.5V or 40ms after 2.7V
+  lcdCommandNibble(INITIALIZE_CMD);
+  delayMicroseconds(4500);             // >4.1ms
+  lcdCommandNibble(INITIALIZE_CMD);
+  delayMicroseconds(150);              // > 100
+  lcdCommandNibble(INITIALIZE_CMD);
+  
+  lcdCommandNibble(SET_4BIT_CMD); // Set 4 bit interface
+  
+  lcdCommand(FUNC_SET_CMD | FUNCTION_ARGS); 
+  lcdCommand(DISPLAY_CMD | DISPLAY_ARGS); 
+  lcdCommand(CLEAR_CMD); 
+  lcdCommand(ENTRY_MODE_CMD | ENTRY_CMD_ARGS); 
+  
+  ops = 0; // Used for critical sections
+  
+  lcdBuffers[0].ReadReady = false;
+  lcdBuffers[0].WriteReady = true;
+  lcdBuffers[0].pEnd = lcdBuffers[0].Buffer + (LCD_ROWS * LCD_COLS);
+  lcdBuffers[0].pNext = &lcdBuffers[1];
+  
+  lcdBuffers[1].ReadReady = false;
+  lcdBuffers[1].WriteReady = true;
+  lcdBuffers[1].pEnd = lcdBuffers[1].Buffer + (LCD_ROWS * LCD_COLS);
+  lcdBuffers[1].pNext = &lcdBuffers[0];
+  
+  interruptState = INTERRUPTSTATE_IDLE;
+  
+  pRead = &lcdBuffers[0];
+  pReadCurrent = pRead->Buffer;
+  readTick = 0x01;
+  //readTicks initialized in the interrupt
+  
+  pWriteNext = &lcdBuffers[0];
+  pWrite = 0;
+  pWriteCurrent = 0;
     
-    lcdCommandNibble(SET_4BIT_CMD); // Set 4 bit interface
-    
-    lcdCommand(FUNC_SET_CMD | FUNCTION_ARGS); 
-    lcdCommand(DISPLAY_CMD | DISPLAY_ARGS); 
-    lcdCommand(CLEAR_CMD); 
-    lcdCommand(ENTRY_MODE_CMD | ENTRY_CMD_ARGS); 
-    
-    ops = 0; // Used for critical sections
-    
-    lcdBuffers[0].ReadReady = false;
-    lcdBuffers[0].WriteReady = true;
-    lcdBuffers[0].pEnd = lcdBuffers[0].Buffer + (LCD_ROWS * LCD_COLS);
-    lcdBuffers[0].pNext = &lcdBuffers[1];
-    
-    lcdBuffers[1].ReadReady = false;
-    lcdBuffers[1].WriteReady = true;
-    lcdBuffers[1].pEnd = lcdBuffers[1].Buffer + (LCD_ROWS * LCD_COLS);
-    lcdBuffers[1].pNext = &lcdBuffers[0];
-    
-    interruptState = INTERRUPTSTATE_IDLE;
-    
-    pRead = &lcdBuffers[0];
-    pReadCurrent = pRead->Buffer;
-    readTick = 0x01;
-    //readTicks initialized in the interrupt
-    
-    pWriteNext = &lcdBuffers[0];
-    pWrite = 0;
-    pWriteCurrent = 0;
-     
-    TimerMask(LcdInterruptNumber) |= _BV(TimerBit(LcdInterruptNumber));
-    TimerA(LcdInterruptNumber) = TIMER_A_VALUE;
-    TimerB(LcdInterruptNumber) = TIMER_B_VALUE;
-    OutCmpA(LcdInterruptNumber) = INTERRUPT_IDLE;  
+  TimerMask(LcdInterruptNumber) |= _BV(TimerBit(LcdInterruptNumber));
+  TimerA(LcdInterruptNumber) = TIMER_A_VALUE;
+  TimerB(LcdInterruptNumber) = TIMER_B_VALUE;
+  OutCmpA(LcdInterruptNumber) = INTERRUPT_IDLE;  
 }
 
 
@@ -389,12 +389,12 @@ void Screen::setCursor(int col, int row)
 
 
 
-void lcdPrint(uint8_t value)
+void Screen::lcdPrint(uint8_t value)
 {
     *pWriteCurrent++ = value;
 }
 
-bool lcdLockBuffer()
+bool Screen::lcdLockBuffer()
 {
     pWrite = pWriteNext;
 
@@ -416,7 +416,7 @@ bool lcdLockBuffer()
     return true;
 }
 
-void lcdWriteBuffer()
+void Screen::lcdWriteBuffer()
 {
     CODE_ENTER; // Synchronize ReadReady and writeState with ISR
     
@@ -433,7 +433,7 @@ void lcdWriteBuffer()
     pWriteCurrent = 0;
 }
 
-bool lcdWriteBuffer(uint8_t *pBuffer)
+bool Screen::lcdWriteBuffer(uint8_t *pBuffer)
 {
     CODE_ENTER; // Syncronize WriteReady with ISR
     
@@ -472,7 +472,7 @@ Internal functions
 
 #ifdef LCD_DEBUG
 
-void DebugState(struct LCD_BUFFER *pBuffer)
+void Screen::DebugState(struct LCD_BUFFER *pBuffer)
 {
     int i,j, k;
     Serial.print("Buffer=");
@@ -501,7 +501,7 @@ void DebugState(struct LCD_BUFFER *pBuffer)
     Serial.println((int)pBuffer->pNext);
 }
 
-void DebugState()
+void Screen::DebugState()
 {
     cli();
     Serial.println();
@@ -529,27 +529,27 @@ void DebugState()
 
 #endif
 
-void lcdCommand(uint8_t value)
+void Screen::lcdCommand(uint8_t value)
 {
     WRITE(LCD_RS_PIN, LOW);
     lcdSyncWrite(value);
     WRITE(LCD_RS_PIN, HIGH);
 }
 
-void lcdCommandNibble(uint8_t value)
+void Screen::lcdCommandNibble(uint8_t value)
 {
     WRITE(LCD_RS_PIN, LOW);
     lcdSyncWriteNibble(value);
     WRITE(LCD_RS_PIN, HIGH);
 }
 
-void lcdSyncWrite(uint8_t value)
+void Screen::lcdSyncWrite(uint8_t value)
 {
     lcdSyncWriteNibble(value >> 4);
     lcdSyncWriteNibble(value);
 }
 
-void lcdSyncWriteNibble(uint8_t value)
+void Screen::lcdSyncWriteNibble(uint8_t value)
 {
     lcdSetDataBits(value);        
     
@@ -565,21 +565,7 @@ void lcdSyncWriteNibble(uint8_t value)
 
 
 
-void handleLcd();
 
-ISR(TIMER4_COMPA_vect)
-{
-//    static volatile bool running = false;
-//    if(running)
-//    {
-//        return;
-//    }
-//    running = true;
-    
-    handleLcd();
-    
-//    running = false;
-}
 
 void handleLcd()
 {
@@ -599,7 +585,7 @@ void handleLcd()
         case INTERRUPTSTATE_CMD_HI1:
             OutCmpA(LcdInterruptNumber) = INTERRUPT_BUSY; // Fire faster while updating
             WRITE(LCD_RS_PIN, LOW);
-            lcdSetDataBits(HOME_CURSOR_CMD >> 4);
+            Screen::lcdSetDataBits(HOME_CURSOR_CMD >> 4);
             WRITE(LCD_E_PIN, HIGH);
             
             interruptState = INTERRUPTSTATE_CMD_LO1;
@@ -612,7 +598,7 @@ void handleLcd()
             return;
             
         case INTERRUPTSTATE_CMD_HI2:
-            lcdSetDataBits(HOME_CURSOR_CMD);
+            Screen::lcdSetDataBits(HOME_CURSOR_CMD);
             WRITE(LCD_E_PIN, HIGH);
             
             interruptState = INTERRUPTSTATE_CMD_LO2;
@@ -641,7 +627,7 @@ void handleLcd()
                 ++pReadCurrent;
             }
             ++readTick;
-            lcdSetDataBits(writeByte);
+            Screen::lcdSetDataBits(writeByte);
             WRITE(LCD_E_PIN, HIGH);
             
             interruptState = INTERRUPTSTATE_E_GOLO;
@@ -674,4 +660,20 @@ void handleLcd()
             }  
             return;
     }
+}
+
+
+
+ISR(TIMER4_COMPA_vect)
+{
+//    static volatile bool running = false;
+//    if(running)
+//    {
+//        return;
+//    }
+//    running = true;
+    
+    handleLcd();
+    
+//    running = false;
 }

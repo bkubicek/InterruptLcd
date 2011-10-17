@@ -85,41 +85,47 @@ public:
 private:
     char buffer[LCD_ROWS * LCD_COLS];
     char* pCurrent;
+    
+  
+public:
+    
+    // lcdLockBuffer - Called to setup a buffer to write to returns true on success and should
+    // be followed by a matching call to lcdWriteBuffer(). A return value of false means there
+    // isn't a buffer free to write to.
+    bool lcdLockBuffer();
+
+    // lcdWriteBuffer - Called at the end of an update to prepare the result for display.
+    void lcdWriteBuffer();
+
+
+
+
+    // Print a byte to the buffer and advance the current write postition.
+    void lcdPrint(uint8_t value);
+
+    // Lock buffer and write it in one call returns true on success, false if no buffer
+    // was available
+    bool lcdWriteBuffer(uint8_t *pBuffer);
+
+    //internal routines
+    void lcdCommandNibble(uint8_t value);
+    void lcdCommand(uint8_t value);
+    void lcdSyncWrite(uint8_t value);
+    void lcdSyncWriteNibble(uint8_t value);
+   
+    static inline void lcdSetDataBits(uint8_t nibble)
+    {         
+        WRITE(LCD_DB4_PIN, (nibble & _BV(0)) ? HIGH : LOW );
+        WRITE(LCD_DB5_PIN, (nibble & _BV(1)) ? HIGH : LOW );
+        WRITE(LCD_DB6_PIN, (nibble & _BV(2)) ? HIGH : LOW );
+        WRITE(LCD_DB7_PIN, (nibble & _BV(3)) ? HIGH : LOW );
+    }
 };
 
 
 
 
 
-// lcdLockBuffer - Called to setup a buffer to write to returns true on success and should
-// be followed by a matching call to lcdWriteBuffer(). A return value of false means there
-// isn't a buffer free to write to.
-bool lcdLockBuffer();
 
-// lcdWriteBuffer - Called at the end of an update to prepare the result for display.
-void lcdWriteBuffer();
-
-
-
-
-// Print a byte to the buffer and advance the current write postition.
-void lcdPrint(uint8_t value);
-
-// Lock buffer and write it in one call returns true on success, false if no buffer
-// was available
-bool lcdWriteBuffer(uint8_t *pBuffer);
-
-//internal routines
-void lcdCommandNibble(uint8_t value);
-void lcdCommand(uint8_t value);
-void lcdSyncWrite(uint8_t value);
-void lcdSyncWriteNibble(uint8_t value);
-inline void lcdSetDataBits(uint8_t nibble)
-{         
-    WRITE(LCD_DB4_PIN, (nibble & _BV(0)) ? HIGH : LOW );
-    WRITE(LCD_DB5_PIN, (nibble & _BV(1)) ? HIGH : LOW );
-    WRITE(LCD_DB6_PIN, (nibble & _BV(2)) ? HIGH : LOW );
-    WRITE(LCD_DB7_PIN, (nibble & _BV(3)) ? HIGH : LOW );
-}
 #endif
 
