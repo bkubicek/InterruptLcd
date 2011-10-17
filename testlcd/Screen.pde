@@ -216,6 +216,18 @@ void Screen::print(char *text, int count)
     }
 }
 
+void Screen::createChar(uint8_t location, uint8_t charmap[])   
+{
+    int i;
+    
+    lcdCommand(WRITE_CGRAM_CMD | ((location & 0x07) << 3)); // Lock location to 0-7 and multiple by 8
+    
+    for (i = 0; i < 8; ++i)
+    {
+        lcdSyncWrite(charmap[i]);
+    }
+}
+
 void Screen::printRow(int row, char *text)
 {
     setCursorRow(row);
@@ -359,17 +371,6 @@ void Screen::print(int value)
 
 
 
-void lcdCreateChar(uint8_t location, uint8_t charmap[])
-{
-    int i;
-    
-    lcdCommand(WRITE_CGRAM_CMD | ((location & 0x07) << 3)); // Lock location to 0-7 and multiple by 8
-    
-    for (i = 0; i < 8; ++i)
-    {
-        lcdSyncWrite(charmap[i]);
-    }
-}
 
 void lcdSetCursor(int col, int row)
 {

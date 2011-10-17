@@ -142,8 +142,8 @@ void loop()
 
 void TestCustomChar()
 {
-  lcdCreateChar(1, Degree);
-  lcdCreateChar(2, Thermometer);
+  welcomeScreen.createChar(1, Degree);
+  welcomeScreen.createChar(2, Thermometer);
   
     if(lcdLockBuffer())
     {
