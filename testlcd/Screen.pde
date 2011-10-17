@@ -106,6 +106,60 @@ Screen::Screen(char* baseScreen)
     pCurrent = buffer;
 }
 
+void Screen::begin(uint8_t cols, uint8_t rows)
+{
+ SET_OUTPUT(LCD_RS_PIN);
+    SET_OUTPUT(LCD_E_PIN);
+  
+    SET_OUTPUT(LCD_DB4_PIN);
+    SET_OUTPUT(LCD_DB5_PIN);
+    SET_OUTPUT(LCD_DB6_PIN);
+    SET_OUTPUT(LCD_DB7_PIN);
+
+    delayMicroseconds(50000);            // 15ms after 4.5V or 40ms after 2.7V
+    lcdCommandNibble(INITIALIZE_CMD);
+    delayMicroseconds(4500);             // >4.1ms
+    lcdCommandNibble(INITIALIZE_CMD);
+    delayMicroseconds(150);              // > 100
+    lcdCommandNibble(INITIALIZE_CMD);
+    
+    lcdCommandNibble(SET_4BIT_CMD); // Set 4 bit interface
+    
+    lcdCommand(FUNC_SET_CMD | FUNCTION_ARGS); 
+    lcdCommand(DISPLAY_CMD | DISPLAY_ARGS); 
+    lcdCommand(CLEAR_CMD); 
+    lcdCommand(ENTRY_MODE_CMD | ENTRY_CMD_ARGS); 
+    
+    ops = 0; // Used for critical sections
+    
+    lcdBuffers[0].ReadReady = false;
+    lcdBuffers[0].WriteReady = true;
+    lcdBuffers[0].pEnd = lcdBuffers[0].Buffer + (LCD_ROWS * LCD_COLS);
+    lcdBuffers[0].pNext = &lcdBuffers[1];
+    
+    lcdBuffers[1].ReadReady = false;
+    lcdBuffers[1].WriteReady = true;
+    lcdBuffers[1].pEnd = lcdBuffers[1].Buffer + (LCD_ROWS * LCD_COLS);
+    lcdBuffers[1].pNext = &lcdBuffers[0];
+    
+    interruptState = INTERRUPTSTATE_IDLE;
+    
+    pRead = &lcdBuffers[0];
+    pReadCurrent = pRead->Buffer;
+    readTick = 0x01;
+    //readTicks initialized in the interrupt
+    
+    pWriteNext = &lcdBuffers[0];
+    pWrite = 0;
+    pWriteCurrent = 0;
+     
+    TimerMask(LcdInterruptNumber) |= _BV(TimerBit(LcdInterruptNumber));
+    TimerA(LcdInterruptNumber) = TIMER_A_VALUE;
+    TimerB(LcdInterruptNumber) = TIMER_B_VALUE;
+    OutCmpA(LcdInterruptNumber) = INTERRUPT_IDLE;  
+}
+
+
 void Screen::setCursor(int col, int row)
 {
     setCursorRow(row);
@@ -304,61 +358,6 @@ void Screen::print(int value)
 
 
 
-
-
-
-void lcdInit()
-{
-    SET_OUTPUT(LCD_RS_PIN);
-    SET_OUTPUT(LCD_E_PIN);
-  
-    SET_OUTPUT(LCD_DB4_PIN);
-    SET_OUTPUT(LCD_DB5_PIN);
-    SET_OUTPUT(LCD_DB6_PIN);
-    SET_OUTPUT(LCD_DB7_PIN);
-
-    delayMicroseconds(50000);            // 15ms after 4.5V or 40ms after 2.7V
-    lcdCommandNibble(INITIALIZE_CMD);
-    delayMicroseconds(4500);             // >4.1ms
-    lcdCommandNibble(INITIALIZE_CMD);
-    delayMicroseconds(150);              // > 100
-    lcdCommandNibble(INITIALIZE_CMD);
-    
-    lcdCommandNibble(SET_4BIT_CMD); // Set 4 bit interface
-    
-    lcdCommand(FUNC_SET_CMD | FUNCTION_ARGS); 
-    lcdCommand(DISPLAY_CMD | DISPLAY_ARGS); 
-    lcdCommand(CLEAR_CMD); 
-    lcdCommand(ENTRY_MODE_CMD | ENTRY_CMD_ARGS); 
-    
-    ops = 0; // Used for critical sections
-    
-    lcdBuffers[0].ReadReady = false;
-    lcdBuffers[0].WriteReady = true;
-    lcdBuffers[0].pEnd = lcdBuffers[0].Buffer + (LCD_ROWS * LCD_COLS);
-    lcdBuffers[0].pNext = &lcdBuffers[1];
-    
-    lcdBuffers[1].ReadReady = false;
-    lcdBuffers[1].WriteReady = true;
-    lcdBuffers[1].pEnd = lcdBuffers[1].Buffer + (LCD_ROWS * LCD_COLS);
-    lcdBuffers[1].pNext = &lcdBuffers[0];
-    
-    interruptState = INTERRUPTSTATE_IDLE;
-    
-    pRead = &lcdBuffers[0];
-    pReadCurrent = pRead->Buffer;
-    readTick = 0x01;
-    //readTicks initialized in the interrupt
-    
-    pWriteNext = &lcdBuffers[0];
-    pWrite = 0;
-    pWriteCurrent = 0;
-     
-    TimerMask(LcdInterruptNumber) |= _BV(TimerBit(LcdInterruptNumber));
-    TimerA(LcdInterruptNumber) = TIMER_A_VALUE;
-    TimerB(LcdInterruptNumber) = TIMER_B_VALUE;
-    OutCmpA(LcdInterruptNumber) = INTERRUPT_IDLE; 
-}
 
 void lcdCreateChar(uint8_t location, uint8_t charmap[])
 {

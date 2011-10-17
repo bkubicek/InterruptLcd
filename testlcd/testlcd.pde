@@ -80,61 +80,19 @@ void setup()
     count = 0;
     Serial.begin(28800);
     Serial.print("Startup...\n");
-    lcdInit();
 
     pinMode(13, OUTPUT); 
 
     delay(1000);
     
     TestScreenDisplay();
-    //TestWriteBuffer();
-    //TestCustomChar();
-    //TestTwoBuffersWaiting();
-    
+    while(1);
+   
     DebugState();
     while(!lcdLockBuffer())
     {
         delay(1);
     }
-    lcdSetCursor(0,0);
-    lcdPrint("1 Waited for buffer.");
-    lcdSetCursor(0,1);
-    lcdPrint("2 Waited for buffer.");
-    lcdSetCursor(0,2);
-    lcdPrint("3 Waited for buffer.");
-    lcdSetCursor(0,3);
-    lcdPrint("4 Waited for buffer.");
-    lcdWriteBuffer();
-    
-    delay(333);
-    //DebugState();
-    
-    if(lcdLockBuffer())
-    {
-        lcdSetCursor(0,0);
-        lcdPrint("1 Tested for buffer.");
-        lcdSetCursor(0,1);
-        lcdPrint("2 Tested for buffer.");
-        lcdSetCursor(0,2);
-        lcdPrint("3 Tested for buffer.");
-        lcdSetCursor(0,3);
-        lcdPrint("4 Tested for buffer.");
-        lcdWriteBuffer();
-    }
-    
-    DebugState();
-
-    while(!lcdLockBuffer())
-    {
-        delay(100);
-    }
-    //DebugState();
-    lcdSetCursor(0,0);
-    lcdPrint("1111111");
-    delay(1000);
-    lcdWriteBuffer();
-
-    delay(1000);
 }
 
 void loop()
@@ -180,44 +138,7 @@ void loop()
     delay(150 - entry);
 }
 
-void TestTwoBuffersWaiting()
-{
-    if(lcdLockBuffer())
-    {
-        lcdSetCursor(0,0);
-        lcdPrint("1 Tested for buffer.");
-        lcdSetCursor(0,1);
-        lcdPrint("2 Tested for buffer.");
-        lcdSetCursor(0,2);
-        lcdPrint("3 Tested for buffer.");
-        lcdSetCursor(0,3);
-        lcdPrint("4 Tested for buffer.");
-        lcdWriteBuffer();
-    }
 
-    if(lcdLockBuffer())
-    {
-        lcdSetCursor(0,0);
-        lcdPrint("5 Tested for buffer.");
-        lcdSetCursor(0,1);
-        lcdPrint("6 Tested for buffer.");
-        lcdSetCursor(0,2);
-        lcdPrint("7 Tested for buffer.");
-        lcdSetCursor(0,3);
-        lcdPrint("8 Tested for buffer.");
-        lcdWriteBuffer();
-    }
-    
-//    for (int i = 0; i < 2 * LCD_SCR_COUNT; ++i)
-//    {
-//        //DebugState();
-//        handleLcd();
-//        delayMicroseconds(50);
-//    }
-    //DebugState();
-
-    while(true);
-}
 
 void TestCustomChar()
 {
@@ -248,6 +169,7 @@ void TestWriteBuffer()
 
 void TestScreenDisplay()
 {
+    welcomeScreen.begin(0,0);
     welcomeScreen.display();
     
     delay(1000);

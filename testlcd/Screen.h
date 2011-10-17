@@ -57,6 +57,29 @@ public:
     void printFloat41(float value);
 
     bool display();
+    
+    
+    void begin(uint8_t cols, uint8_t rows);
+//replicate LiquidCrystal.cpp
+  void clear();
+  void home();
+
+  void noDisplay();
+  void noBlink();
+  void blink();
+  void noCursor();
+  void cursor();
+  void scrollDisplayLeft();
+  void scrollDisplayRight();
+  void leftToRight();
+  void rightToLeft();
+  void autoscroll();
+  void noAutoscroll();
+
+  void createChar(uint8_t, uint8_t[]);
+  void setCursor(uint8_t, uint8_t); 
+  void write(uint8_t);
+  void command(uint8_t);
 
 private:
     char buffer[LCD_ROWS * LCD_COLS];
