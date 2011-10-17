@@ -100,9 +100,6 @@ void lcdWriteBuffer();
 
 
 
-// Print a nul treminated string of characters caller should limit to the remaining length 
-// of the current row. This method advances the current write postition.
-void lcdPrint(char* pString);
 
 // Print a byte to the buffer and advance the current write postition.
 void lcdPrint(uint8_t value);

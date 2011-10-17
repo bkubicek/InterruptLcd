@@ -188,11 +188,11 @@ void Screen::print(char ch)
     *pCurrent++ = ch;
 }
 
-void Screen::print(char *text)
+void Screen::print(char *pString)
 {
-    while (*text)
+    while (*pString)
     {
-        *pCurrent++ = *text++;
+        *pWriteCurrent++ = *pString++;
     }
 }
 
@@ -388,13 +388,7 @@ void Screen::setCursor(int col, int row)
     }
 }
 
-void lcdPrint(char *pString)
-{
-    while (*pString)
-    {
-        *pWriteCurrent++ = *pString++;
-    }
-}
+
 
 void lcdPrint(uint8_t value)
 {

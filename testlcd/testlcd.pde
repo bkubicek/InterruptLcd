@@ -149,11 +149,11 @@ void TestCustomChar()
     {
         welcomeScreen.setCursor(0,0);
         lcdPrint(1);
-        lcdPrint(" Degree.");
+        welcomeScreen.print(" Degree.");
         
         welcomeScreen.setCursor(0,1);
         lcdPrint(2);
-        lcdPrint(" Thermometer.");
+        welcomeScreen.print(" Thermometer.");
         lcdWriteBuffer();
     }
     
