@@ -72,6 +72,12 @@ enum{
 
 
 
+  uint8_t _data_pins[4];
+  uint8_t _rs_pin; // LOW: command.  HIGH: character.
+  //uint8_t _rw_pin; // LOW: write to LCD.  HIGH: read from LCD.
+  uint8_t _enable_pin; // activated by a HIGH pulse.
+
+
 
 volatile uint8_t Screen::ops=0;
 volatile uint8_t Screen::interruptState=INTERRUPT_IDLE;
@@ -90,8 +96,17 @@ uint8_t *Screen::pWriteCurrent=0;
 
 
 
-Screen::Screen()
+Screen::Screen(uint8_t rs, uint8_t enable,
+    uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3)
 {
+    _rs_pin = rs;
+  _enable_pin = enable;
+  
+  _data_pins[0] = d0;
+  _data_pins[1] = d1;
+  _data_pins[2] = d2;
+  _data_pins[3] = d3;
+  
     memset(buffer, ' ', LCD_ROWS * LCD_COLS);
     pCurrent = buffer;
 }
@@ -107,13 +122,13 @@ Screen::Screen(char* baseScreen)
 
 void Screen::begin(uint8_t cols, uint8_t rows)
 {
- SET_OUTPUT(LCD_RS_PIN);
-  SET_OUTPUT(LCD_E_PIN);
+  pinMode(_rs_pin, OUTPUT);
+  pinMode(_enable_pin, OUTPUT);
 
-  SET_OUTPUT(LCD_DB4_PIN);
-  SET_OUTPUT(LCD_DB5_PIN);
-  SET_OUTPUT(LCD_DB6_PIN);
-  SET_OUTPUT(LCD_DB7_PIN);
+  pinMode(_data_pins[0], OUTPUT);
+  pinMode(_data_pins[1], OUTPUT);
+  pinMode(_data_pins[2], OUTPUT);
+  pinMode(_data_pins[3], OUTPUT);
 
   delayMicroseconds(50000);            // 15ms after 4.5V or 40ms after 2.7V
   lcdCommandNibble(INITIALIZE_CMD);
@@ -531,16 +546,16 @@ void Screen::DebugState()
 
 void Screen::lcdCommand(uint8_t value)
 {
-    WRITE(LCD_RS_PIN, LOW);
+    digitalWrite(_rs_pin, LOW);
     lcdSyncWrite(value);
-    WRITE(LCD_RS_PIN, HIGH);
+    digitalWrite(_rs_pin, HIGH);
 }
 
 void Screen::lcdCommandNibble(uint8_t value)
 {
-    WRITE(LCD_RS_PIN, LOW);
+    digitalWrite(_rs_pin, LOW);
     lcdSyncWriteNibble(value);
-    WRITE(LCD_RS_PIN, HIGH);
+    digitalWrite(_rs_pin, HIGH);
 }
 
 void Screen::lcdSyncWrite(uint8_t value)
@@ -553,11 +568,11 @@ void Screen::lcdSyncWriteNibble(uint8_t value)
 {
     lcdSetDataBits(value);        
     
-    WRITE(LCD_E_PIN, HIGH);
+    digitalWrite(_enable_pin, HIGH);
     
     delayMicroseconds(1);
     
-    WRITE(LCD_E_PIN, LOW);
+    digitalWrite(_enable_pin, LOW);
     
     delayMicroseconds(50);
 }
@@ -584,34 +599,34 @@ void interruptTransmit()
     {
         case INTERRUPTSTATE_CMD_HI1:
             OutCmpA(LcdInterruptNumber) = INTERRUPT_BUSY; // Fire faster while updating
-            WRITE(LCD_RS_PIN, LOW);
+            digitalWrite(_rs_pin, LOW);
             Screen::lcdSetDataBits(HOME_CURSOR_CMD >> 4);
-            WRITE(LCD_E_PIN, HIGH);
+            digitalWrite(_enable_pin, HIGH);
             
             Screen::interruptState = INTERRUPTSTATE_CMD_LO1;
             return;
             
         case INTERRUPTSTATE_CMD_LO1:
-            WRITE(LCD_E_PIN, LOW);
+            digitalWrite(_enable_pin, LOW);
             
             Screen::interruptState = INTERRUPTSTATE_CMD_HI2;
             return;
             
         case INTERRUPTSTATE_CMD_HI2:
             Screen::lcdSetDataBits(HOME_CURSOR_CMD);
-            WRITE(LCD_E_PIN, HIGH);
+            digitalWrite(_enable_pin, HIGH);
             
             Screen::interruptState = INTERRUPTSTATE_CMD_LO2;
             return;
            
         case INTERRUPTSTATE_CMD_LO2:
-            WRITE(LCD_E_PIN, LOW);
+            digitalWrite(_enable_pin, LOW);
             
             Screen::interruptState = INTERRUPTSTATE_CMD_END;
             return;
             
         case INTERRUPTSTATE_CMD_END:
-            WRITE(LCD_RS_PIN, HIGH);
+            digitalWrite(_rs_pin, HIGH);
             
             Screen::interruptState = INTERRUPTSTATE_E_GOHI;
             return;
@@ -628,13 +643,13 @@ void interruptTransmit()
             }
             ++Screen::readTick;
             Screen::lcdSetDataBits(writeByte);
-            WRITE(LCD_E_PIN, HIGH);
+            digitalWrite(_enable_pin, HIGH);
             
             Screen::interruptState = INTERRUPTSTATE_E_GOLO;
             return;
             
         case INTERRUPTSTATE_E_GOLO:
-            WRITE(LCD_E_PIN, LOW);
+            digitalWrite(_enable_pin, LOW);
             
             if(Screen::pReadCurrent >= Screen::pRead->pEnd || Screen::pRead->pNext->ReadReady)
             {

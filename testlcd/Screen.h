@@ -27,6 +27,7 @@
 #define DISPLAY_ARGS   DISPLAY_DISPLAY_ON | DISPLAY_CURSOR_OFF | DISPLAY_BLINK_OFF
 #define ENTRY_CMD_ARGS ENTRY_LEFTTORIGHT | ENTRY_SHIFT_OFF
 
+extern uint8_t _data_pins[4];
 
 struct LCD_BUFFER
 {
@@ -40,27 +41,28 @@ struct LCD_BUFFER
 class Screen
 {
 public:
-    Screen();
-    Screen(char* baseScreen);
+  Screen(uint8_t rs, uint8_t enable,
+    uint8_t d0, uint8_t d1, uint8_t d2, uint8_t d3);
+  Screen(char* baseScreen);
 
-    char* getCursor() const { return pCurrent; }
-    void setCursor(char *pCursor) { pCurrent = pCursor; }
-    void setCursor(int col, int row);
-    void setCursorRow(int row);
+  char* getCursor() const { return pCurrent; }
+  void setCursor(char *pCursor) { pCurrent = pCursor; }
+  void setCursor(int col, int row);
+  void setCursorRow(int row);
 
-    void print(char ch);
-    void print(int value);
-    void print(char *text);
-    void print(char *text, int count);
-    void printRow(int row, char *text);
+  void print(char ch);
+  void print(int value);
+  void print(char *text);
+  void print(char *text, int count);
+  void printRow(int row, char *text);
 
-    void printFloat31(float value);
-    void printFloat41(float value);
+  void printFloat31(float value);
+  void printFloat41(float value);
 
-    bool display();
-    
-    
-    void begin(uint8_t cols, uint8_t rows);
+  bool display();
+  
+  
+  void begin(uint8_t cols, uint8_t rows);
 //replicate LiquidCrystal.cpp
   void clear();
   void home();
@@ -83,65 +85,68 @@ public:
   void command(uint8_t);
 
 private:
-    char buffer[LCD_ROWS * LCD_COLS];
-    char* pCurrent;
-    
+  char buffer[LCD_ROWS * LCD_COLS];
+  char* pCurrent;
+
+  
   
 public:
     
-    // lcdLockBuffer - Called to setup a buffer to write to returns true on success and should
-    // be followed by a matching call to lcdWriteBuffer(). A return value of false means there
-    // isn't a buffer free to write to.
-    bool lcdLockBuffer();
+  // lcdLockBuffer - Called to setup a buffer to write to returns true on success and should
+  // be followed by a matching call to lcdWriteBuffer(). A return value of false means there
+  // isn't a buffer free to write to.
+  bool lcdLockBuffer();
 
-    // lcdWriteBuffer - Called at the end of an update to prepare the result for display.
-    void lcdWriteBuffer();
-
-
+  // lcdWriteBuffer - Called at the end of an update to prepare the result for display.
+  void lcdWriteBuffer();
 
 
-    // Print a byte to the buffer and advance the current write postition.
-    void lcdPrint(uint8_t value);
-
-    // Lock buffer and write it in one call returns true on success, false if no buffer
-    // was available
-    bool lcdWriteBuffer(uint8_t *pBuffer);
-
-    //internal routines
-    void lcdCommandNibble(uint8_t value);
-    void lcdCommand(uint8_t value);
-    void lcdSyncWrite(uint8_t value);
-    void lcdSyncWriteNibble(uint8_t value);
-   
-    static inline void lcdSetDataBits(uint8_t nibble)
-    {         
-        WRITE(LCD_DB4_PIN, (nibble & _BV(0)) ? HIGH : LOW );
-        WRITE(LCD_DB5_PIN, (nibble & _BV(1)) ? HIGH : LOW );
-        WRITE(LCD_DB6_PIN, (nibble & _BV(2)) ? HIGH : LOW );
-        WRITE(LCD_DB7_PIN, (nibble & _BV(3)) ? HIGH : LOW );
-    }
-    
-    
-    static volatile uint8_t ops;
-    static volatile uint8_t interruptState;
-    static uint8_t readTick;
-
-    static struct LCD_BUFFER lcdBuffers[2];
-
-    static LCD_BUFFER *pRead;
-    static uint8_t *pReadCurrent;
 
 
-    static LCD_BUFFER *pWriteNext;
-    static LCD_BUFFER *pWrite;
-    static uint8_t *pWriteCurrent;
+  // Print a byte to the buffer and advance the current write postition.
+  void lcdPrint(uint8_t value);
+
+  // Lock buffer and write it in one call returns true on success, false if no buffer
+  // was available
+  bool lcdWriteBuffer(uint8_t *pBuffer);
+
+  //internal routines
+  void lcdCommandNibble(uint8_t value);
+  void lcdCommand(uint8_t value);
+  void lcdSyncWrite(uint8_t value);
+  void lcdSyncWriteNibble(uint8_t value);
   
+   static inline void lcdSetDataBits(uint8_t nibble)
+  {         
+      digitalWrite(_data_pins[0], (nibble & _BV(0)) ? HIGH : LOW );
+      digitalWrite(_data_pins[1], (nibble & _BV(1)) ? HIGH : LOW );
+      digitalWrite(_data_pins[2], (nibble & _BV(2)) ? HIGH : LOW );
+      digitalWrite(_data_pins[3], (nibble & _BV(3)) ? HIGH : LOW );
+  }
+  
+  
+  static volatile uint8_t ops;
+  static volatile uint8_t interruptState;
+  static uint8_t readTick;
+
+  static struct LCD_BUFFER lcdBuffers[2];
+
+  static LCD_BUFFER *pRead;
+  static uint8_t *pReadCurrent;
+
+
+  static LCD_BUFFER *pWriteNext;
+  static LCD_BUFFER *pWrite;
+  static uint8_t *pWriteCurrent;
+#ifdef LCD_DEBUG
+public:
+  void DebugState(struct LCD_BUFFER *pBuffer);
+  void Screen::DebugState();
+
+#endif
 };
 
 
 
 
-
-
-#endif
-
+#endif  //SCREEN_H
